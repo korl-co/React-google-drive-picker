@@ -4,15 +4,16 @@ declare let google: any
 declare let window: any
 import { useEffect, useState } from 'react'
 import {
-  authResult,
+  AuthResult,
   defaultConfiguration,
+  PickerCallback,
   PickerConfiguration,
 } from './typeDefs'
 import useInjectScript from './useInjectScript'
 
 export default function useDrivePicker(): [
   (config: PickerConfiguration) => boolean | undefined,
-  authResult | undefined
+  AuthResult | undefined
 ] {
   const defaultScopes = ['https://www.googleapis.com/auth/drive.file']
   const [loaded, error] = useInjectScript('https://apis.google.com/js/api.js')
@@ -24,7 +25,7 @@ export default function useDrivePicker(): [
   const [authWindowVisible, setAuthWindowVisible] = useState(false)
   const [config, setConfig] =
     useState<PickerConfiguration>(defaultConfiguration)
-  const [authRes, setAuthRes] = useState<authResult>()
+  const [authRes, setAuthRes] = useState<AuthResult>()
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let picker: any
@@ -73,7 +74,7 @@ export default function useDrivePicker(): [
           ? [...defaultScopes, ...config.customScopes]
           : defaultScopes
         ).join(' '),
-        callback: (tokenResponse: authResult) => {
+        callback: (tokenResponse: AuthResult) => {
           setAuthRes(tokenResponse)
           createPicker({ ...config, token: tokenResponse.access_token })
         },
@@ -138,7 +139,7 @@ export default function useDrivePicker(): [
       .setOAuthToken(token)
       .setDeveloperKey(developerKey)
       .setLocale(locale)
-      .setCallback(callbackFunction)
+      .setCallback((data: PickerCallback) => callbackFunction(data, authRes!))
 
     if (setOrigin) {
       picker.setOrigin(setOrigin)
