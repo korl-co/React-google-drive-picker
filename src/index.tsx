@@ -139,7 +139,7 @@ export default function useDrivePicker(): [
       .setOAuthToken(token)
       .setDeveloperKey(developerKey)
       .setLocale(locale)
-      .setCallback((data: PickerCallback) => callbackFunction(data, authRes!))
+      .setCallback((data: PickerCallback) => callbackFunction(data, token!))
 
     if (setOrigin) {
       picker.setOrigin(setOrigin)
