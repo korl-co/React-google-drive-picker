@@ -10,10 +10,10 @@ import {
   PickerConfiguration,
 } from './typeDefs'
 import useInjectScript from './useInjectScript'
-import { decode } from 'jsonwebtoken'
+import { validateAccessToken } from './auth'
 
 export default function useDrivePicker(): [
-  (config: PickerConfiguration) => boolean | undefined,
+  (config: PickerConfiguration) => Promise<boolean | undefined>,
   AuthResult | undefined
 ] {
   const defaultScopes = ['https://www.googleapis.com/auth/drive.file']
@@ -63,22 +63,17 @@ export default function useDrivePicker(): [
   ])
 
   // open the picker
-  const openPicker = (config: PickerConfiguration) => {
+  const openPicker = async (config: PickerConfiguration) => {
     // global scope given conf
     setConfig(config)
 
-    let isTokenExpired = false
+    let isTokenValid = true
     if (config.token) {
-      const decodedToken = decode(config.token, { complete: false, json: true })
-      const expirationTime = new Date(decodedToken?.expires_in * 1000)
-      const currentTime = new Date()
-      if (currentTime >= expirationTime) {
-        isTokenExpired = true
-      }
+      isTokenValid = await validateAccessToken(config.token)
     }
 
     // if we didnt get token generate token.
-    if (!config.token || isTokenExpired) {
+    if (!config.token || !isTokenValid) {
       const client = google.accounts.oauth2.initTokenClient({
         client_id: config.clientId,
         scope: (config.customScopes
