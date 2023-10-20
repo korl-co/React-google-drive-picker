@@ -87,11 +87,11 @@ export default function useDrivePicker(): [
       })
 
       client.requestAccessToken()
-    }
-
-    // if we have token and everything is loaded open the picker
-    if (config.token && loaded && !error && pickerApiLoaded) {
-      return createPicker(config)
+    } else {
+      // if we have token and everything is loaded open the picker
+      if (loaded && !error && pickerApiLoaded) {
+        return createPicker(config)
+      }
     }
   }
 
