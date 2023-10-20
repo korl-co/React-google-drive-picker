@@ -10,6 +10,7 @@ import {
   PickerConfiguration,
 } from './typeDefs'
 import useInjectScript from './useInjectScript'
+import { decode } from 'jsonwebtoken'
 
 export default function useDrivePicker(): [
   (config: PickerConfiguration) => boolean | undefined,
@@ -66,8 +67,18 @@ export default function useDrivePicker(): [
     // global scope given conf
     setConfig(config)
 
+    let isTokenExpired = false
+    if (config.token) {
+      const decodedToken = decode(config.token, { complete: false, json: true })
+      const expirationTime = new Date(decodedToken?.expires_in * 1000)
+      const currentTime = new Date()
+      if (currentTime >= expirationTime) {
+        isTokenExpired = true
+      }
+    }
+
     // if we didnt get token generate token.
-    if (!config.token) {
+    if (!config.token || isTokenExpired) {
       const client = google.accounts.oauth2.initTokenClient({
         client_id: config.clientId,
         scope: (config.customScopes
