@@ -119,6 +119,7 @@ export default function useDrivePicker(): [
     setIncludeFolders,
     setSelectFolderEnabled,
     disableDefaultView = false,
+    maxItems,
     callbackFunction,
   }: PickerConfiguration) => {
     if (disabled) return false
@@ -161,6 +162,10 @@ export default function useDrivePicker(): [
 
     if (supportDrives) {
       picker.enableFeature(google.picker.Feature.SUPPORT_DRIVES)
+    }
+
+    if (maxItems) {
+      picker.setMaxItems(maxItems)
     }
 
     picker.build().setVisible(true)

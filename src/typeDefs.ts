@@ -66,6 +66,7 @@ export type PickerConfiguration = {
   customViews?: any[]
   locale?: string
   customScopes?: string[]
+  maxItems?: number
   callbackFunction: (data: PickerCallback, accessToken: string) => any
 }
 
