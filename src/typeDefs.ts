@@ -72,6 +72,13 @@ export type PickerConfiguration = {
   callbackFunction: (data: PickerCallback, accessToken: string) => any
 }
 
+export type AuthenticateParams = {
+  clientId: string
+  token: string
+  customScopes?: string[]
+  callbackFunction: (accessToken: string) => void
+}
+
 export const defaultConfiguration: PickerConfiguration = {
   clientId: '',
   developerKey: '',
