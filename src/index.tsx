@@ -126,6 +126,8 @@ export default function useDrivePicker(): [
     setSelectFolderEnabled,
     disableDefaultView = false,
     maxItems,
+    title,
+    mineOnly,
     callbackFunction,
   }: PickerConfiguration) => {
     if (disabled) return false
@@ -172,6 +174,14 @@ export default function useDrivePicker(): [
 
     if (maxItems) {
       picker.setMaxItems(maxItems)
+    }
+
+    if (title) {
+      picker.setTitle(title)
+    }
+
+    if (mineOnly) {
+      picker.enableFeature(google.picker.Feature.MINE_ONLY)
     }
 
     picker.build().setVisible(true)
