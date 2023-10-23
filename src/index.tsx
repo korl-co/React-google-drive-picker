@@ -4,6 +4,7 @@ declare let google: any
 declare let window: any
 import { useEffect, useState } from 'react'
 import {
+  AuthenticateParams,
   AuthResult,
   defaultConfiguration,
   PickerCallback,
@@ -12,10 +13,10 @@ import {
 import useInjectScript from './useInjectScript'
 import { validateAccessToken } from './auth'
 
-export default function useDrivePicker(): [
-  (config: PickerConfiguration) => Promise<boolean | undefined>,
-  AuthResult | undefined
-] {
+export default function useDrivePicker(): {
+  openPicker: (config: PickerConfiguration) => Promise<void>
+  authenticateUser: (authenticateParams: AuthenticateParams) => void
+} {
   const defaultScopes = ['https://www.googleapis.com/auth/drive.file']
   const [loaded, error] = useInjectScript('https://apis.google.com/js/api.js')
   const [loadedGsi, errorGsi] = useInjectScript(
@@ -23,7 +24,6 @@ export default function useDrivePicker(): [
   )
   const [pickerApiLoaded, setpickerApiLoaded] = useState(false)
   const [openAfterAuth, setOpenAfterAuth] = useState(false)
-  const [authWindowVisible, setAuthWindowVisible] = useState(false)
   const [config, setConfig] =
     useState<PickerConfiguration>(defaultConfiguration)
   const [authRes, setAuthRes] = useState<AuthResult>()
@@ -62,37 +62,50 @@ export default function useDrivePicker(): [
     pickerApiLoaded,
   ])
 
-  // open the picker
-  const openPicker = async (config: PickerConfiguration) => {
-    // global scope given conf
-    setConfig(config)
+  const authenticateUser = async ({
+    clientId,
+    token,
+    customScopes,
+    callbackFunction,
+  }: AuthenticateParams) => {
+    const isTokenValid = await validateAccessToken(token)
 
-    let isTokenValid = true
-    if (config.token) {
-      isTokenValid = await validateAccessToken(config.token)
-    }
-
-    // if we didnt get token generate token.
-    if (!config.token || !isTokenValid) {
+    if (!isTokenValid) {
       const client = google.accounts.oauth2.initTokenClient({
-        client_id: config.clientId,
-        scope: (config.customScopes
-          ? [...defaultScopes, ...config.customScopes]
+        client_id: clientId,
+        scope: (customScopes
+          ? [...defaultScopes, ...customScopes]
           : defaultScopes
         ).join(' '),
         callback: (tokenResponse: AuthResult) => {
           setAuthRes(tokenResponse)
-          createPicker({ ...config, token: tokenResponse.access_token })
+          callbackFunction(tokenResponse.access_token)
         },
       })
 
       client.requestAccessToken()
     } else {
-      // if we have token and everything is loaded open the picker
-      if (loaded && !error && pickerApiLoaded) {
-        return createPicker(config)
-      }
+      callbackFunction(token)
     }
+  }
+
+  // open the picker
+  const openPicker = async (config: PickerConfiguration) => {
+    // global scope given conf
+    setConfig(config)
+
+    // if we didnt get token generate token.
+    authenticateUser({
+      clientId: config.clientId,
+      token: config.token ?? '',
+      customScopes: config.customScopes,
+      callbackFunction: (accessToken: string) => {
+        createPicker({
+          ...config,
+          ...(accessToken && { token: accessToken }),
+        })
+      },
+    })
   }
 
   // load the Drive picker api
@@ -188,5 +201,5 @@ export default function useDrivePicker(): [
     return true
   }
 
-  return [openPicker, authRes]
+  return { openPicker, authenticateUser }
 }
