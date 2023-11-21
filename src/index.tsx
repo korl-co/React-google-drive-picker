@@ -141,6 +141,7 @@ export default function useDrivePicker(): {
     maxItems,
     title,
     mineOnly,
+    docsViewMode = 'LIST',
     callbackFunction,
   }: PickerConfiguration) => {
     if (disabled) return false
@@ -149,6 +150,7 @@ export default function useDrivePicker(): {
     if (viewMimeTypes) view.setMimeTypes(viewMimeTypes)
     if (setIncludeFolders) view.setIncludeFolders(true)
     if (setSelectFolderEnabled) view.setSelectFolderEnabled(true)
+    if (docsViewMode) view.setMode(google.picker.DocsViewMode[docsViewMode])
 
     const uploadView = new google.picker.DocsUploadView()
     if (viewMimeTypes) uploadView.setMimeTypes(viewMimeTypes)
