@@ -45,6 +45,8 @@ type ViewIdOptions =
   | 'SPREADSHEETS'
   | 'PRESENTATIONS'
 
+type DocViewMode = 'GRID' | 'LIST'
+
 export type PickerConfiguration = {
   clientId: string
   developerKey: string
@@ -69,6 +71,7 @@ export type PickerConfiguration = {
   maxItems?: number
   title?: string
   mineOnly?: boolean
+  docsViewMode?: DocViewMode
   callbackFunction: (data: PickerCallback, accessToken: string) => any
 }
 
